@@ -49,7 +49,7 @@ def acfs_gillespie_noise(
     deathrate_str = f"{deathrate:.3f}".replace(".", "p")
     birthrate_str = f"{birthrate:.3f}".replace(".", "p")
     gill_noise_filename = (
-        "gillespienoise_n"
+        "../data/interim/gillespienoise_n"
         + num_timeseries_str
         + "_k"
         + birthrate_str
@@ -71,6 +71,7 @@ def acfs_gillespie_noise(
             time_final=gill_time_final,
             grid_num_intervals=gill_num_intervals,
         )
+        np.savetxt(gill_noise_filename, gill_noise_array, delimiter=",")
 
     # Add signal and noise
     combined_array = signal_array + gill_noise_array
@@ -243,8 +244,8 @@ print(est_coeffs)
 
 # %%
 # this is VERY ugly, but it's at the end of the day and just want a plot out
-# noise_timescale_list = [20, 40, 60, 80, 100, 120, 140, 160, 180, 200]
-# noise_amp_list = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]
+#noise_timescale_list = [20, 40, 60, 80, 100, 120, 140, 160, 180, 200]
+#noise_amp_list = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]
 noise_timescale_list = [20] * 11
 noise_amp_list = [20, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500]
 auc_list = []
@@ -257,6 +258,9 @@ amp_list = []
 for noise_timescale, noise_amp in zip(noise_timescale_list, noise_amp_list):
     # generate signals & compute acf
     autocorr_result = acfs_gillespie_noise(
+        signal_function=lambda num_timeseries, timeaxis: sinusoid_outofphase_array(
+            num_timeseries=200, timeaxis=timeaxis, amp=1, freq=0.03
+        ),
         num_timeseries=200,
         noise_timescale=noise_timescale,
         noise_amp=noise_amp,
