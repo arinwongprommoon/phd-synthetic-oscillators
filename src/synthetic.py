@@ -546,7 +546,7 @@ class FitzHughNagumoModelStochastic(FitzHughNagumoModel):
 
 class BirthDeathProcess:
     def __init__(self, birthrate, deathrate, time_final):
-        self.model_file = "birth_death.psc"
+        self.model_file = "/home/arin/git/synthetic-oscillators/src/birth_death.psc"
         self.params = {
             "birthrate": birthrate,
             "deathrate": deathrate,
