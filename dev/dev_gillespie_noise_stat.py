@@ -11,9 +11,9 @@ import seaborn as sns
 from postprocessor.core.processes.findpeaks import findpeaks
 from scipy.signal import periodogram
 
-from crosscorr import crosscorr
-from synthetic import fitzhugh_nagumo, gillespie_noise, sinusoid
-from utils import multiarray_random_shift, tile_signals
+from src.crosscorr import crosscorr
+from src.synthetic import fitzhugh_nagumo, gillespie_noise, sinusoid
+from src.utils import multiarray_random_shift, tile_signals
 
 
 def acfs_gillespie_noise(
