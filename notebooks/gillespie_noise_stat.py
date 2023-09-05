@@ -315,7 +315,7 @@ ax_K.scatter(deathrate_list, est_coeffs_array[:, 0], label="Fit to mean")
 ax_K.scatter(deathrate_list, upper_coeffs_array[:, 0], label="Fit to peaks")
 ax_K.set_xlabel("Death rate ($d_0$)")
 ax_K.set_ylabel(
-    "decay rate of\n best-fit exponential decay functions\nto features (troughs/peaks)\n of mean autocorrelation function"
+    "estimated decay rate ($D$)"
 )
 ax_K.legend()
 
@@ -325,7 +325,7 @@ ax_C.scatter(noise_timescale_list, est_coeffs_array[:, 1], label="Fit to mean")
 ax_C.scatter(noise_timescale_list, upper_coeffs_array[:, 1], label="Fit to peaks")
 ax_C.set_xlabel("Noise timescale ($1/d_0$)")
 ax_C.set_ylabel(
-    "y-displacement of\n best-fit exponential decay functions\nto features (troughs/peaks)\n of mean autocorrelation function"
+    "estimated y-displacement ($C$)"
 )
 ax_C.legend()
 
@@ -361,7 +361,7 @@ ax_K.scatter(noise_amp_list, est_coeffs_array[:, 0], label="Fit to mean")
 ax_K.scatter(noise_amp_list, upper_coeffs_array[:, 0], label="Fit to peaks")
 ax_K.set_xlabel("Noise amplitude ($k_0/d_0$)")
 ax_K.set_ylabel(
-    "decay rate of\n best-fit exponential decay functions\nto features (troughs/peaks)\n of mean autocorrelation function"
+    "estimated decay rate ($D$)"
 )
 ax_K.legend()
 
@@ -371,7 +371,7 @@ ax_C.scatter(noise_amp_list, est_coeffs_array[:, 1], label="Fit to mean")
 ax_C.scatter(noise_amp_list, upper_coeffs_array[:, 1], label="Fit to peaks")
 ax_C.set_xlabel("Noise amplitude ($k_0/d_0$)")
 ax_C.set_ylabel(
-    "y-displacement of\n best-fit exponential decay functions\nto features (troughs/peaks)\n of mean autocorrelation function"
+    "estimated y-displacement ($C$)"
 )
 ax_C.legend()
 
