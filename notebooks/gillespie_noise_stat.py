@@ -386,3 +386,17 @@ fig, ax = plt.subplots()
 ax.scatter(noise_amp_list, amp_list)
 ax.set_xlabel("Noise amplitude ($k_0/d_0$)")
 ax.set_ylabel("Approximate amplitude of oscillations in ACF")
+
+# %%
+birthrate_vs_ydispl_df = pd.DataFrame({
+    'noise_amp': noise_amp_list,
+    'C_lower': lower_coeffs_array[:,1],
+    'C_central': est_coeffs_array[:,1],
+    'C_upper': upper_coeffs_array[:,1],
+})
+
+# %%
+birthrate_vs_ydispl_df
+
+# %%
+birthrate_vs_ydispl_df.to_csv
