@@ -244,10 +244,10 @@ print(est_coeffs)
 
 # %%
 # this is VERY ugly, but it's at the end of the day and just want a plot out
-#noise_timescale_list = [20, 40, 60, 80, 100, 120, 140, 160, 180, 200]
-#noise_amp_list = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]
-noise_timescale_list = [20] * 11
-noise_amp_list = [20, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500]
+noise_timescale_list = [20, 40, 60, 80, 100, 120, 140, 160, 180, 200]
+noise_amp_list = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]
+#noise_timescale_list = [20] * 11
+#noise_amp_list = [20, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500]
 auc_list = []
 upper_coeffs_list = []
 lower_coeffs_list = []
@@ -399,4 +399,18 @@ birthrate_vs_ydispl_df = pd.DataFrame({
 birthrate_vs_ydispl_df
 
 # %%
-birthrate_vs_ydispl_df.to_csv
+birthrate_vs_ydispl_df.to_csv("../data/interim/birthrate_vs_ydispl.csv", index=False)
+
+# %%
+deathrate_vs_decay_df = pd.DataFrame({
+    'deathrate': deathrate_list,
+    'D_lower': lower_coeffs_array[:,0],
+    'D_central': est_coeffs_array[:,0],
+    'D_upper': upper_coeffs_array[:,0],
+})
+
+# %%
+deathrate_vs_decay_df
+
+# %%
+deathrate_vs_decay_df.to_csv("../data/interim/deathrate_vs_decay.csv", index=False)
