@@ -132,9 +132,13 @@ def fit_peak_trough(
     peaks_mask[0] = True
     troughs_mask[0] = True
 
+    print(f"PEAKS {np.sum(peaks_mask)}")
+    print(f"TROUGHS {np.sum(troughs_mask)}")
+
     # initial guess is the decay function in acf plot
     initial_guess = [initial_K, initial_C]
 
+    breakpoint()
     # fit peaks
     upper_coeffs = fit_exp_nonlinear(
         timeaxis[peaks_mask],
@@ -154,7 +158,8 @@ def fit_peak_trough(
 gill_time_final = 7500
 gill_num_intervals = 5000
 noise_timescale = 20
-noise_amp = 250
+noise_amp = 200
+# noise_amp = 250
 
 autocorr_result = acfs_gillespie_noise(
     signal_function=lambda num_timeseries, timeaxis: sinusoid_outofphase_array(
@@ -164,6 +169,8 @@ autocorr_result = acfs_gillespie_noise(
     noise_timescale=noise_timescale,
     noise_amp=noise_amp,
 )
+
+breakpoint()
 
 initial_K = (gill_time_final / (gill_num_intervals - 1)) * (1 / noise_timescale)
 upper_coeffs, lower_coeffs = fit_peak_trough(autocorr_result, initial_K=initial_K)
