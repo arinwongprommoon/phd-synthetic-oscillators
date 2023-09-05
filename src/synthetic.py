@@ -6,9 +6,13 @@ Functions to create synthetic signals
 from abc import ABC, abstractmethod
 
 import numpy as np
+import os
 import stochpy
 
 from scipy import integrate, interpolate
+
+dir_path = os.path.dirname(os.path.realpath(__file__))
+model_filepath = dir_path + "/birth_death.psc"
 
 
 def white_noise(num_samples, mean=0.0, std_dev=1.0):
@@ -546,7 +550,7 @@ class FitzHughNagumoModelStochastic(FitzHughNagumoModel):
 
 class BirthDeathProcess:
     def __init__(self, birthrate, deathrate, time_final):
-        self.model_file = "/home/arin/git/synthetic-oscillators/src/birth_death.psc"
+        self.model_file = model_filepath
         self.params = {
             "birthrate": birthrate,
             "deathrate": deathrate,
