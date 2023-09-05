@@ -10,8 +10,8 @@ from postprocessor.core.processes.findpeaks import findpeaks
 from postprocessor.routines.mean_plot import mean_plot
 
 # from postprocessor.core.multisignal.crosscorr import crosscorr
-from crosscorr import crosscorr
-from synthetic import (
+from src.crosscorr import crosscorr
+from src.synthetic import (
     fitzhugh_nagumo,
     fitzhugh_nagumo_stochastic,
     gillespie_noise,
@@ -19,7 +19,7 @@ from synthetic import (
     harmonic_stochastic,
     sinusoid,
 )
-from utils import multiarray_random_shift, simple_median_plot, tile_signals
+from src.utils import multiarray_random_shift, simple_median_plot, tile_signals
 
 
 # %% Optional: define logistic envelope function

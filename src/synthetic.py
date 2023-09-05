@@ -3,9 +3,11 @@
 """
 Functions to create synthetic signals
 """
-from abc import abstractmethod, ABC
+from abc import ABC, abstractmethod
+
 import numpy as np
 import stochpy
+
 from scipy import integrate, interpolate
 
 

@@ -1,4 +1,15 @@
 #!/usr/bin/env python3
+# %%
+import os
+import sys
+module_path = os.path.abspath(os.path.join('..'))
+if module_path not in sys.path:
+    sys.path.append(module_path)
+    
+# %reload_ext autoreload
+# %autoreload 2
+# %matplotlib inline
+
 # %% [markdown]
 # setting stuff up
 

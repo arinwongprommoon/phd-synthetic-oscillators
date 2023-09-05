@@ -8,9 +8,9 @@ import seaborn as sns
 from postprocessor.core.processes.findpeaks import findpeaks
 
 # from postprocessor.core.multisignal.crosscorr import crosscorr
-from crosscorr import crosscorr
-from synthetic import gillespie_noise, sinusoid
-from utils import simple_median_plot
+from src.crosscorr import crosscorr
+from src.synthetic import gillespie_noise, sinusoid
+from src.utils import simple_median_plot
 
 
 # %% [markdown]
