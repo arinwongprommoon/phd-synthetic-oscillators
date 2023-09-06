@@ -49,7 +49,7 @@ def acfs_gillespie_noise(
     deathrate_str = f"{deathrate:.3f}".replace(".", "p")
     birthrate_str = f"{birthrate:.3f}".replace(".", "p")
     gill_noise_filename = (
-        "gillespienoise_n"
+        "../data/interim/gillespienoise/fitzhughnagumo/gillespienoise_n"
         + num_timeseries_str
         + "_k"
         + birthrate_str
@@ -71,6 +71,7 @@ def acfs_gillespie_noise(
             time_final=gill_time_final,
             grid_num_intervals=gill_num_intervals,
         )
+        np.savetxt(gill_noise_filename, gill_noise_array, delimiter=",")
 
     # Add signal and noise
     combined_array = signal_array + gill_noise_array
@@ -243,8 +244,8 @@ print(est_coeffs)
 
 # %%
 # this is VERY ugly, but it's at the end of the day and just want a plot out
-# noise_timescale_list = [20, 40, 60, 80, 100, 120, 140, 160, 180, 200]
-# noise_amp_list = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]
+#noise_timescale_list = [20, 40, 60, 80, 100, 120, 140, 160, 180, 200]
+#noise_amp_list = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]
 noise_timescale_list = [20] * 11
 noise_amp_list = [20, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500]
 auc_list = []
@@ -256,7 +257,18 @@ amp_list = []
 
 for noise_timescale, noise_amp in zip(noise_timescale_list, noise_amp_list):
     # generate signals & compute acf
+    #autocorr_result = acfs_gillespie_noise(
+    #    signal_function=lambda num_timeseries, timeaxis: sinusoid_outofphase_array(
+    #        num_timeseries=200, timeaxis=timeaxis, amp=1, freq=0.03
+    #    ),
+    #    num_timeseries=200,
+    #    noise_timescale=noise_timescale,
+    #    noise_amp=noise_amp,
+    #)
     autocorr_result = acfs_gillespie_noise(
+        signal_function=lambda num_timeseries, timeaxis: fitzhugh_nagumo_outofphase_array(
+        num_timeseries=200, timeaxis=timeaxis
+        ),
         num_timeseries=200,
         noise_timescale=noise_timescale,
         noise_amp=noise_amp,
@@ -311,7 +323,7 @@ ax_K.scatter(deathrate_list, est_coeffs_array[:, 0], label="Fit to mean")
 ax_K.scatter(deathrate_list, upper_coeffs_array[:, 0], label="Fit to peaks")
 ax_K.set_xlabel("Death rate ($d_0$)")
 ax_K.set_ylabel(
-    "decay rate of\n best-fit exponential decay functions\nto features (troughs/peaks)\n of mean autocorrelation function"
+    "estimated decay rate ($D$)"
 )
 ax_K.legend()
 
@@ -321,7 +333,7 @@ ax_C.scatter(noise_timescale_list, est_coeffs_array[:, 1], label="Fit to mean")
 ax_C.scatter(noise_timescale_list, upper_coeffs_array[:, 1], label="Fit to peaks")
 ax_C.set_xlabel("Noise timescale ($1/d_0$)")
 ax_C.set_ylabel(
-    "y-displacement of\n best-fit exponential decay functions\nto features (troughs/peaks)\n of mean autocorrelation function"
+    "estimated y-displacement ($C$)"
 )
 ax_C.legend()
 
@@ -357,7 +369,7 @@ ax_K.scatter(noise_amp_list, est_coeffs_array[:, 0], label="Fit to mean")
 ax_K.scatter(noise_amp_list, upper_coeffs_array[:, 0], label="Fit to peaks")
 ax_K.set_xlabel("Noise amplitude ($k_0/d_0$)")
 ax_K.set_ylabel(
-    "decay rate of\n best-fit exponential decay functions\nto features (troughs/peaks)\n of mean autocorrelation function"
+    "estimated decay rate ($D$)"
 )
 ax_K.legend()
 
@@ -367,7 +379,7 @@ ax_C.scatter(noise_amp_list, est_coeffs_array[:, 1], label="Fit to mean")
 ax_C.scatter(noise_amp_list, upper_coeffs_array[:, 1], label="Fit to peaks")
 ax_C.set_xlabel("Noise amplitude ($k_0/d_0$)")
 ax_C.set_ylabel(
-    "y-displacement of\n best-fit exponential decay functions\nto features (troughs/peaks)\n of mean autocorrelation function"
+    "estimated y-displacement ($C$)"
 )
 ax_C.legend()
 
@@ -382,3 +394,31 @@ fig, ax = plt.subplots()
 ax.scatter(noise_amp_list, amp_list)
 ax.set_xlabel("Noise amplitude ($k_0/d_0$)")
 ax.set_ylabel("Approximate amplitude of oscillations in ACF")
+
+# %%
+birthrate_vs_ydispl_df = pd.DataFrame({
+    'noise_amp': noise_amp_list,
+    'C_lower': lower_coeffs_array[:,1],
+    'C_central': est_coeffs_array[:,1],
+    'C_upper': upper_coeffs_array[:,1],
+})
+
+# %%
+birthrate_vs_ydispl_df
+
+# %%
+birthrate_vs_ydispl_df.to_csv("../data/interim/birthrate_vs_ydispl.csv", index=False)
+
+# %%
+deathrate_vs_decay_df = pd.DataFrame({
+    'deathrate': deathrate_list,
+    'D_lower': lower_coeffs_array[:,0],
+    'D_central': est_coeffs_array[:,0],
+    'D_upper': upper_coeffs_array[:,0],
+})
+
+# %%
+deathrate_vs_decay_df
+
+# %%
+deathrate_vs_decay_df.to_csv("../data/interim/deathrate_vs_decay.csv", index=False)
