@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 
+import logging
 import numpy as np
 import pandas as pd
 from src.synthetic import gillespie_noise
 
 from src.crosscorr import crosscorr
+
+logger = logging.getLogger(__name__)
 
 
 def generate_filepath_gillespie_noise(
@@ -49,6 +52,8 @@ def acfs_gillespie_noise(
     gill_num_intervals=5000,
 ):
     # TODO: docs
+
+    logger.info("Log test")
 
     # Array for signal function
     signal_array = signal_function(num_timeseries=num_timeseries, timeaxis=timeaxis)

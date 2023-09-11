@@ -3,6 +3,7 @@
 from collections import namedtuple
 
 import matplotlib.pyplot as plt
+import logging
 import numpy as np
 import pandas as pd
 from matplotlib.backends.backend_pdf import PdfPages
@@ -30,6 +31,14 @@ plot_choices = {
     # Noise amplitude vs y-displacement
     "ydispl": True,
 }
+
+logging.basicConfig(
+    level=logging.INFO,
+    filename="../logs/gillespie_noise_stat.log",
+    filemode="w",
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+)
+
 
 # define list of params to go through
 
@@ -109,7 +118,6 @@ with PdfPages(pdf_filename) as pdf:
 # Close all figures
 plt.close("all")
 
-
 # save stats
 
 birthrate_vs_ydispl_df = pd.DataFrame(
@@ -133,7 +141,3 @@ deathrate_vs_decay_df = pd.DataFrame(
 )
 
 deathrate_vs_decay_df.to_csv("../data/interim/deathrate_vs_decay.csv", index=False)
-
-breakpoint()
-
-print("done.")
