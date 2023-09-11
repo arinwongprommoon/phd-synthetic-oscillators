@@ -28,7 +28,7 @@ def generate_filepath_gillespie_noise(
     num_timeseries,
     noise_timescale,
     noise_amp,
-    dir="../data/interim/gillespienoise/fitzhughnagumo/",
+    dir="../data/interim/gillespienoise/",
 ):
     """filename generator"""
     deathrate = 1 / noise_timescale
