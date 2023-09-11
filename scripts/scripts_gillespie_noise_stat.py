@@ -5,9 +5,10 @@ from collections import namedtuple
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from src.gillespienoise import acfs_gillespie_noise
-from src.array import sinusoid_outofphase_array, fitzhugh_nagumo_outofphase_array
+from matplotlib.backends.backend_pdf import PdfPages
+from src.array import fitzhugh_nagumo_outofphase_array, sinusoid_outofphase_array
 from src.expofit import fit_mean, fit_peak_trough
+from src.gillespienoise import acfs_gillespie_noise
 
 model_options = {
     # list of noise timescale values to go through
@@ -23,6 +24,12 @@ model_options = {
     "signal_function": fitzhugh_nagumo_outofphase_array,
 }
 
+plot_choices = {
+    # Death rate vs decay rate
+    "decay": True,
+    # Noise amplitude vs y-displacement
+    "ydispl": True,
+}
 
 # define list of params to go through
 
@@ -35,6 +42,7 @@ noise_params_list = [
     NoiseParams(*el) for el in zip(noise_timescale_list, noise_amp_list)
 ]
 
+deathrate_list = 1 / np.array(noise_timescale_list)
 
 # generate/load acfs
 
@@ -75,22 +83,32 @@ est_coeffs_array = np.array(est_coeffs_list)
 
 # plots
 
-fig_K, ax_K = plt.subplots()
-deathrate_list = 1 / np.array(noise_timescale_list)
-ax_K.scatter(deathrate_list, lower_coeffs_array[:, 0], label="Fit to troughs")
-ax_K.scatter(deathrate_list, est_coeffs_array[:, 0], label="Fit to mean")
-ax_K.scatter(deathrate_list, upper_coeffs_array[:, 0], label="Fit to peaks")
-ax_K.set_xlabel("Death rate ($d_0$)")
-ax_K.set_ylabel("estimated decay rate ($D$)")
-ax_K.legend()
+if plot_choices["decay"]:
+    fig_K, ax_K = plt.subplots()
+    ax_K.scatter(deathrate_list, lower_coeffs_array[:, 0], label="Fit to troughs")
+    ax_K.scatter(deathrate_list, est_coeffs_array[:, 0], label="Fit to mean")
+    ax_K.scatter(deathrate_list, upper_coeffs_array[:, 0], label="Fit to peaks")
+    ax_K.set_xlabel("Death rate ($d_0$)")
+    ax_K.set_ylabel("estimated decay rate ($D$)")
+    ax_K.legend()
 
-fig_C, ax_C = plt.subplots()
-ax_C.scatter(noise_amp_list, lower_coeffs_array[:, 1], label="Fit to troughs")
-ax_C.scatter(noise_amp_list, est_coeffs_array[:, 1], label="Fit to mean")
-ax_C.scatter(noise_amp_list, upper_coeffs_array[:, 1], label="Fit to peaks")
-ax_C.set_xlabel("Noise amplitude ($k_0/d_0$)")
-ax_C.set_ylabel("estimated y-displacement ($C$)")
-ax_C.legend()
+if plot_choices["ydispl"]:
+    fig_C, ax_C = plt.subplots()
+    ax_C.scatter(noise_amp_list, lower_coeffs_array[:, 1], label="Fit to troughs")
+    ax_C.scatter(noise_amp_list, est_coeffs_array[:, 1], label="Fit to mean")
+    ax_C.scatter(noise_amp_list, upper_coeffs_array[:, 1], label="Fit to peaks")
+    ax_C.set_xlabel("Noise amplitude ($k_0/d_0$)")
+    ax_C.set_ylabel("estimated y-displacement ($C$)")
+    ax_C.legend()
+
+# Save figures
+pdf_filename = "../reports/gillespie_noise_stat.pdf"
+with PdfPages(pdf_filename) as pdf:
+    for fig in range(1, plt.gcf().number + 1):
+        pdf.savefig(fig)
+# Close all figures
+plt.close("all")
+
 
 # save stats
 
