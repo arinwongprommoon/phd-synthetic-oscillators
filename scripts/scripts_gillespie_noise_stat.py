@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 
+from collections import namedtuple
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import scipy as sp
 from postprocessor.core.processes.findpeaks import findpeaks
-
 from src.crosscorr import crosscorr
 from src.synthetic import fitzhugh_nagumo, gillespie_noise, sinusoid
 from src.utils import multiarray_random_shift, tile_signals
@@ -197,7 +198,6 @@ def fit_peak_trough(
 gill_time_final = 7500
 gill_num_intervals = 5000
 
-from collections import namedtuple
 
 NoiseParams = namedtuple("NoiseParams", "noise_timescale noise_amp")
 
