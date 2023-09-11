@@ -202,7 +202,7 @@ def fit_peak_trough(
 
 
 # %% [markdown]
-# get stats
+# # get stats
 
 # %%
 gill_time_final = 7500
@@ -234,40 +234,56 @@ print(upper_coeffs)
 print(lower_coeffs)
 print(est_coeffs)
 # %% [markdown]
-# vary stuff
+# # vary stuff
+
+# %% [markdown]
+# define list of params to go through
 
 # %%
-# this is VERY ugly, but it's at the end of the day and just want a plot out
+gill_time_final = 7500
+gill_num_intervals = 5000
 
-#noise_timescale_list = [20, 40, 60, 80, 100, 120, 140, 160, 180, 200]
-#noise_amp_list = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]
+# %%
+from collections import namedtuple
+NoiseParams = namedtuple("NoiseParams", "noise_timescale noise_amp")
+
+# %%
 noise_timescale_list = [20] * 11
 noise_amp_list = [20, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500]
 
+# %%
+noise_params_list = [NoiseParams(*el) for el in zip(noise_timescale_list, noise_amp_list)]
+
+# %% [markdown]
+# generate/load acfs
+
+# %%
+acfs_dict = {}
+for noise_params in noise_params_list:
+    autocorr_result = acfs_gillespie_noise(
+        signal_function=lambda num_timeseries, timeaxis: fitzhugh_nagumo_outofphase_array(
+            num_timeseries=200, timeaxis=timeaxis
+            ),
+        num_timeseries=200,
+        noise_timescale=noise_params.noise_timescale,
+        noise_amp=noise_params.noise_amp,
+        gill_time_final=gill_time_final,
+        gill_num_intervals=gill_num_intervals,
+    )
+    acfs_dict[noise_params] = autocorr_result
+
+# %% [markdown]
+# fit exponentials
+
+# %%
 upper_coeffs_list = []
 lower_coeffs_list = []
 est_coeffs_list = []
 
-for noise_timescale, noise_amp in zip(noise_timescale_list, noise_amp_list):
-    # generate signals & compute acf
-    #autocorr_result = acfs_gillespie_noise(
-    #    signal_function=lambda num_timeseries, timeaxis: sinusoid_outofphase_array(
-    #        num_timeseries=200, timeaxis=timeaxis, amp=1, freq=0.03
-    #    ),
-    #    num_timeseries=200,
-    #    noise_timescale=noise_timescale,
-    #    noise_amp=noise_amp,
-    #)
-    autocorr_result = acfs_gillespie_noise(
-        signal_function=lambda num_timeseries, timeaxis: fitzhugh_nagumo_outofphase_array(
-        num_timeseries=200, timeaxis=timeaxis
-        ),
-        num_timeseries=200,
-        noise_timescale=noise_timescale,
-        noise_amp=noise_amp,
-    )
-
-    # fit exponential
+for noise_params in noise_params_list:
+    noise_timescale = noise_params.noise_timescale
+    autcorr_result = acfs_dict[noise_params]
+    
     initial_K = (gill_time_final / (gill_num_intervals - 1)) * (1 / noise_timescale)
     upper_coeffs, lower_coeffs = fit_peak_trough(autocorr_result, initial_K=initial_K)
     est_coeffs = fit_mean(autocorr_result, initial_K=initial_K)
@@ -275,9 +291,8 @@ for noise_timescale, noise_amp in zip(noise_timescale_list, noise_amp_list):
     lower_coeffs_list.append(lower_coeffs)
     est_coeffs_list.append(est_coeffs)
 
-
 # %% [markdown]
-# plots
+# # plots
 
 # %%
 fig_K, ax_K = plt.subplots()
@@ -301,6 +316,9 @@ ax_C.set_ylabel(
     "estimated y-displacement ($C$)"
 )
 ax_C.legend()
+
+# %% [markdown]
+# # save stats
 
 # %%
 birthrate_vs_ydispl_df = pd.DataFrame({
