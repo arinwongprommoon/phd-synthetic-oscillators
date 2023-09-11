@@ -23,6 +23,7 @@ model_options = {
     # function to use for signal,
     # "sinusoid_outofphase_array" or "fitzhugh_nagumo_outofphase_array"
     "signal_function": fitzhugh_nagumo_outofphase_array,
+    "signal_freq": 0.0235,
 }
 
 plot_choices = {
@@ -82,6 +83,10 @@ est_coeffs_list = []
 for noise_params in noise_params_list:
     noise_timescale = noise_params.noise_timescale
     autocorr_result = acfs_dict[noise_params]
+
+    # Scale x-axis so that it is expressed in terms of periods
+    # -- this produces a proper fit in theory
+    autocorr_result.columns *= model_options["signal_freq"]
 
     initial_K = (
         model_options["gill_time_final"] / (model_options["gill_num_intervals"] - 1)
