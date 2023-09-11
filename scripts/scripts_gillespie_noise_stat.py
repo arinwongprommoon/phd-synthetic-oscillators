@@ -57,7 +57,7 @@ est_coeffs_list = []
 
 for noise_params in noise_params_list:
     noise_timescale = noise_params.noise_timescale
-    autcorr_result = acfs_dict[noise_params]
+    autocorr_result = acfs_dict[noise_params]
 
     initial_K = (gill_time_final / (gill_num_intervals - 1)) * (1 / noise_timescale)
     upper_coeffs, lower_coeffs = fit_peak_trough(autocorr_result, initial_K=initial_K)
