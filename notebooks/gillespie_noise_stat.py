@@ -294,6 +294,10 @@ for noise_params in noise_params_list:
     lower_coeffs_list.append(lower_coeffs)
     est_coeffs_list.append(est_coeffs)
 
+lower_coeffs_array = np.array(lower_coeffs_list)
+upper_coeffs_array = np.array(upper_coeffs_list)
+est_coeffs_array = np.array(est_coeffs_list)
+
 # %% [markdown]
 # # plots
 
