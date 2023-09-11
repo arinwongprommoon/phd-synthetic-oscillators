@@ -53,8 +53,6 @@ def acfs_gillespie_noise(
 ):
     # TODO: docs
 
-    logger.info("Log test")
-
     # Array for signal function
     signal_array = signal_function(num_timeseries=num_timeseries, timeaxis=timeaxis)
 
@@ -70,8 +68,12 @@ def acfs_gillespie_noise(
         gill_noise_array = load_gillespie_noise(
             gill_noise_filepath, num_timeseries=num_timeseries
         )
+        logger.info("Gillespie noise file %s exists, so loaded.", gill_noise_filepath)
     except:
-        print(f"{gill_noise_filepath} does not exist, running simulations...")
+        logger.info(
+            "Gillespie noise file %s does not exist, running simulations...",
+            gill_noise_filepath,
+        )
         gill_noise_array = gillespie_noise(
             num_timeseries=num_timeseries,
             num_timepoints=len(timeaxis),
@@ -80,7 +82,9 @@ def acfs_gillespie_noise(
             time_final=gill_time_final,
             grid_num_intervals=gill_num_intervals,
         )
+        logger.info("Simulations done.")
         np.savetxt(gill_noise_filepath, gill_noise_array, delimiter=",")
+        logger.info("File %s saved.", gill_noise_filepath)
 
     # Add signal and noise
     combined_array = signal_array + gill_noise_array

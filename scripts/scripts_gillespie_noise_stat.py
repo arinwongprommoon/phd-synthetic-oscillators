@@ -38,6 +38,7 @@ logging.basicConfig(
     filemode="w",
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
+logger = logging.getLogger(__name__)
 
 
 # define list of params to go through
@@ -53,7 +54,8 @@ noise_params_list = [
 
 deathrate_list = 1 / np.array(noise_timescale_list)
 
-# generate/load acfs
+# generate acfs
+logger.info("Begin generating ACFs")
 
 acfs_dict = {}
 for noise_params in noise_params_list:
@@ -67,7 +69,11 @@ for noise_params in noise_params_list:
     )
     acfs_dict[noise_params] = autocorr_result
 
+logger.info("Done generating ACFs")
+
 # fit exponentials
+
+logger.info("Begin fitting exponentials")
 
 upper_coeffs_list = []
 lower_coeffs_list = []
@@ -89,6 +95,8 @@ for noise_params in noise_params_list:
 lower_coeffs_array = np.array(lower_coeffs_list)
 upper_coeffs_array = np.array(upper_coeffs_list)
 est_coeffs_array = np.array(est_coeffs_list)
+
+logger.info("Done fitting exponentials")
 
 # plots
 
@@ -118,6 +126,8 @@ with PdfPages(pdf_filename) as pdf:
 # Close all figures
 plt.close("all")
 
+logger.info("Done saving plots")
+
 # save stats
 
 birthrate_vs_ydispl_df = pd.DataFrame(
@@ -141,3 +151,5 @@ deathrate_vs_decay_df = pd.DataFrame(
 )
 
 deathrate_vs_decay_df.to_csv("../data/interim/deathrate_vs_decay.csv", index=False)
+
+logger.info("Done saving stats.")
