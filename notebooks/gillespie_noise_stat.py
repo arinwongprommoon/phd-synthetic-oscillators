@@ -250,9 +250,14 @@ NoiseParams = namedtuple("NoiseParams", "noise_timescale noise_amp")
 # %%
 noise_timescale_list = [20] * 11
 noise_amp_list = [20, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500]
+num_timeseries = 200
 
 # %%
 noise_params_list = [NoiseParams(*el) for el in zip(noise_timescale_list, noise_amp_list)]
+
+# %%
+signal_function = fitzhugh_nagumo_outofphase_array
+# signal_function = sinusoid_outofphase_array
 
 # %% [markdown]
 # generate/load acfs
@@ -261,10 +266,8 @@ noise_params_list = [NoiseParams(*el) for el in zip(noise_timescale_list, noise_
 acfs_dict = {}
 for noise_params in noise_params_list:
     autocorr_result = acfs_gillespie_noise(
-        signal_function=lambda num_timeseries, timeaxis: fitzhugh_nagumo_outofphase_array(
-            num_timeseries=200, timeaxis=timeaxis
-            ),
-        num_timeseries=200,
+        signal_function=signal_function,
+        num_timeseries=num_timeseries,
         noise_timescale=noise_params.noise_timescale,
         noise_amp=noise_params.noise_amp,
         gill_time_final=gill_time_final,
