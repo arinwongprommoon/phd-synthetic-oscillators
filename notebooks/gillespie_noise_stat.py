@@ -11,21 +11,50 @@ if module_path not in sys.path:
 # %matplotlib inline
 
 # %% [markdown]
-# setting stuff up
+# # setting stuff up
 
 # %% setting stuff up
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import scipy as sp
-import seaborn as sns
 from postprocessor.core.processes.findpeaks import findpeaks
-from scipy.signal import periodogram
 
 from src.crosscorr import crosscorr
 from src.synthetic import fitzhugh_nagumo, gillespie_noise, sinusoid
 from src.utils import multiarray_random_shift, tile_signals
 
+def generate_filepath_gillespie_noise(
+    num_timeseries,
+    noise_timescale,
+    noise_amp,
+    dir="../data/interim/gillespienoise/",
+):
+    """filename generator"""
+    deathrate = 1 / noise_timescale
+    birthrate = noise_amp / noise_timescale
+    num_timeseries_str = f"{num_timeseries:.0f}"
+    deathrate_str = f"{deathrate:.3f}".replace(".", "p")
+    birthrate_str = f"{birthrate:.3f}".replace(".", "p")
+    gill_noise_filepath = (
+        dir +
+        "gillespienoise_n"
+        + num_timeseries_str
+        + "_k"
+        + birthrate_str
+        + "_d"
+        + deathrate_str
+        + ".csv"
+    )
+    return gill_noise_filepath
+
+
+def load_gillespie_noise(gill_noise_filepath, num_timeseries):
+    # bodge. ideally, it should detect the number of time series from the filename
+    gill_noise_array = np.genfromtxt(gill_noise_filepath, delimiter=",")
+    gill_noise_array = gill_noise_array[:num_timeseries, :]
+    return gill_noise_array
+        
 
 def acfs_gillespie_noise(
     signal_function,
@@ -43,26 +72,16 @@ def acfs_gillespie_noise(
 
     # Array of Gillespie noise
     # filename generator
-    deathrate = 1 / noise_timescale
-    birthrate = noise_amp / noise_timescale
-    num_timeseries_str = f"{num_timeseries:.0f}"
-    deathrate_str = f"{deathrate:.3f}".replace(".", "p")
-    birthrate_str = f"{birthrate:.3f}".replace(".", "p")
-    gill_noise_filename = (
-        "../data/interim/gillespienoise/fitzhughnagumo/gillespienoise_n"
-        + num_timeseries_str
-        + "_k"
-        + birthrate_str
-        + "_d"
-        + deathrate_str
-        + ".csv"
+    gill_noise_filepath = generate_filepath_gillespie_noise(
+        num_timeseries=num_timeseries,
+        noise_timescale=noise_timescale,
+        noise_amp=noise_amp
     )
     # Load from file if it exists, or generate new
     try:
-        gill_noise_array = np.genfromtxt(gill_noise_filename, delimiter=",")
-        gill_noise_array = gill_noise_array[:num_timeseries, :]
+        gill_noise_array = load_gillespie_noise(gill_noise_filepath, num_timeseries=num_timeseries)
     except:
-        print(f"{gill_noise_filename} does not exist, running simulations...")
+        print(f"{gill_noise_filepath} does not exist, running simulations...")
         gill_noise_array = gillespie_noise(
             num_timeseries=num_timeseries,
             num_timepoints=len(timeaxis),
@@ -107,13 +126,6 @@ def fitzhugh_nagumo_outofphase_array(
     fitzhugh_nagumo_array = tile_signals([fitzhugh_nagumo_single], [num_timeseries])
     fitzhugh_nagumo_array = multiarray_random_shift([fitzhugh_nagumo_array])[0]
     return fitzhugh_nagumo_array
-
-
-def std_auc(array):
-    """
-    array: 2d numpy array
-    """
-    return np.trapz(array.std(axis=0))
 
 
 def model_func(t, K, C):
@@ -189,26 +201,8 @@ def fit_peak_trough(
     return upper_coeffs, lower_coeffs
 
 
-def guess_amplitude(timeseries):
-    """
-    Approximate ampltitude of an sinusoidal signal based on its Fourier
-    spectrum
-
-    Note: has to be a very good-quality sinusoid to work
-    """
-    freqs, power = periodogram(
-        timeseries,
-        fs=1,
-        nfft=len(timeseries),
-        return_onesided=True,
-        scaling="spectrum",
-    )
-    amp = np.sqrt(2 * max(power))
-    return amp
-
-
 # %% [markdown]
-# get stats
+# # get stats
 
 # %%
 gill_time_final = 7500
@@ -240,44 +234,59 @@ print(upper_coeffs)
 print(lower_coeffs)
 print(est_coeffs)
 # %% [markdown]
-# vary stuff
+# # vary stuff
+
+# %% [markdown]
+# define list of params to go through
 
 # %%
-# this is VERY ugly, but it's at the end of the day and just want a plot out
-#noise_timescale_list = [20, 40, 60, 80, 100, 120, 140, 160, 180, 200]
-#noise_amp_list = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]
+gill_time_final = 7500
+gill_num_intervals = 5000
+
+# %%
+from collections import namedtuple
+NoiseParams = namedtuple("NoiseParams", "noise_timescale noise_amp")
+
+# %%
 noise_timescale_list = [20] * 11
 noise_amp_list = [20, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500]
-auc_list = []
+num_timeseries = 200
+
+# %%
+noise_params_list = [NoiseParams(*el) for el in zip(noise_timescale_list, noise_amp_list)]
+
+# %%
+signal_function = fitzhugh_nagumo_outofphase_array
+# signal_function = sinusoid_outofphase_array
+
+# %% [markdown]
+# generate/load acfs
+
+# %%
+acfs_dict = {}
+for noise_params in noise_params_list:
+    autocorr_result = acfs_gillespie_noise(
+        signal_function=signal_function,
+        num_timeseries=num_timeseries,
+        noise_timescale=noise_params.noise_timescale,
+        noise_amp=noise_params.noise_amp,
+        gill_time_final=gill_time_final,
+        gill_num_intervals=gill_num_intervals,
+    )
+    acfs_dict[noise_params] = autocorr_result
+
+# %% [markdown]
+# fit exponentials
+
+# %%
 upper_coeffs_list = []
 lower_coeffs_list = []
 est_coeffs_list = []
-ss_res_list = []
-amp_list = []
 
-for noise_timescale, noise_amp in zip(noise_timescale_list, noise_amp_list):
-    # generate signals & compute acf
-    #autocorr_result = acfs_gillespie_noise(
-    #    signal_function=lambda num_timeseries, timeaxis: sinusoid_outofphase_array(
-    #        num_timeseries=200, timeaxis=timeaxis, amp=1, freq=0.03
-    #    ),
-    #    num_timeseries=200,
-    #    noise_timescale=noise_timescale,
-    #    noise_amp=noise_amp,
-    #)
-    autocorr_result = acfs_gillespie_noise(
-        signal_function=lambda num_timeseries, timeaxis: fitzhugh_nagumo_outofphase_array(
-        num_timeseries=200, timeaxis=timeaxis
-        ),
-        num_timeseries=200,
-        noise_timescale=noise_timescale,
-        noise_amp=noise_amp,
-    )
-
-    # auc
-    auc_list.append(std_auc(autocorr_result))
-
-    # fit exponential
+for noise_params in noise_params_list:
+    noise_timescale = noise_params.noise_timescale
+    autcorr_result = acfs_dict[noise_params]
+    
     initial_K = (gill_time_final / (gill_num_intervals - 1)) * (1 / noise_timescale)
     upper_coeffs, lower_coeffs = fit_peak_trough(autocorr_result, initial_K=initial_K)
     est_coeffs = fit_mean(autocorr_result, initial_K=initial_K)
@@ -285,37 +294,14 @@ for noise_timescale, noise_amp in zip(noise_timescale_list, noise_amp_list):
     lower_coeffs_list.append(lower_coeffs)
     est_coeffs_list.append(est_coeffs)
 
-    # residual sum of squares
-    timeaxis = autocorr_result.columns.to_numpy()
-    mean_acf_df = autocorr_result.mean().to_frame().T
-    mean_acf = mean_acf_df.to_numpy()[0]
-    est_func = model_func(timeaxis, est_coeffs[0], est_coeffs[1])
-    residuals = mean_acf - est_func
-    ss_res = np.sum(residuals**2)
-    ss_res_list.append(ss_res)
-
-    # approximate amplitude of oscillations in acf
-    amp = guess_amplitude(residuals)
-    amp_list.append(amp)
-
-
-# %% [markdown]
-# plots
-
-# %%
-# deathrate vs auc
-fig, ax = plt.subplots()
-ax.scatter(noise_timescale_list, auc_list)
-ax.set_xlabel("Noise timescale ($1/d_0$)")
-ax.set_ylabel(
-    "Area under curve:\n standard deviation of autocorrelation function\n against lags"
-)
-
-# deathrate vs params of exponential fits to acf
 lower_coeffs_array = np.array(lower_coeffs_list)
 upper_coeffs_array = np.array(upper_coeffs_list)
 est_coeffs_array = np.array(est_coeffs_list)
 
+# %% [markdown]
+# # plots
+
+# %%
 fig_K, ax_K = plt.subplots()
 deathrate_list = 1 / np.array(noise_timescale_list)
 ax_K.scatter(deathrate_list, lower_coeffs_array[:, 0], label="Fit to troughs")
@@ -327,52 +313,7 @@ ax_K.set_ylabel(
 )
 ax_K.legend()
 
-fig_C, ax_C = plt.subplots()
-ax_C.scatter(noise_timescale_list, lower_coeffs_array[:, 1], label="Fit to troughs")
-ax_C.scatter(noise_timescale_list, est_coeffs_array[:, 1], label="Fit to mean")
-ax_C.scatter(noise_timescale_list, upper_coeffs_array[:, 1], label="Fit to peaks")
-ax_C.set_xlabel("Noise timescale ($1/d_0$)")
-ax_C.set_ylabel(
-    "estimated y-displacement ($C$)"
-)
-ax_C.legend()
-
-# deathrate vs residual sum of squares
-fig, ax = plt.subplots()
-ax.scatter(noise_timescale_list, ss_res_list)
-ax.set_xlabel("Noise timescale ($1/d_0$)")
-ax.set_ylabel("Residual sum of squares")
-
-# deathrate vs amplitude of oscillations in acf
-fig, ax = plt.subplots()
-ax.scatter(noise_timescale_list, amp_list)
-ax.set_xlabel("Noise timescale ($1/d_0$)")
-ax.set_ylabel("Approximate amplitude of oscillations in ACF")
-
 # %%
-# birthrate vs auc
-fig, ax = plt.subplots()
-ax.scatter(noise_amp_list, auc_list)
-ax.set_xlabel("Noise amplitude ($k_0/d_0$)")
-ax.set_ylabel(
-    "Area under curve:\n standard deviation of autocorrelation function\n against lags"
-)
-
-# birthrate vs params of exponential fits to acf
-lower_coeffs_array = np.array(lower_coeffs_list)
-upper_coeffs_array = np.array(upper_coeffs_list)
-est_coeffs_array = np.array(est_coeffs_list)
-
-fig_K, ax_K = plt.subplots()
-ax_K.scatter(noise_amp_list, lower_coeffs_array[:, 0], label="Fit to troughs")
-ax_K.scatter(noise_amp_list, est_coeffs_array[:, 0], label="Fit to mean")
-ax_K.scatter(noise_amp_list, upper_coeffs_array[:, 0], label="Fit to peaks")
-ax_K.set_xlabel("Noise amplitude ($k_0/d_0$)")
-ax_K.set_ylabel(
-    "estimated decay rate ($D$)"
-)
-ax_K.legend()
-
 fig_C, ax_C = plt.subplots()
 ax_C.scatter(noise_amp_list, lower_coeffs_array[:, 1], label="Fit to troughs")
 ax_C.scatter(noise_amp_list, est_coeffs_array[:, 1], label="Fit to mean")
@@ -383,17 +324,8 @@ ax_C.set_ylabel(
 )
 ax_C.legend()
 
-# deathrate vs residual sum of squares
-fig, ax = plt.subplots()
-ax.scatter(noise_amp_list, ss_res_list)
-ax.set_xlabel("Noise amplitude ($k_0/d_0$)")
-ax.set_ylabel("Residual sum of squares")
-
-# deathrate vs amplitude of oscillations in acf
-fig, ax = plt.subplots()
-ax.scatter(noise_amp_list, amp_list)
-ax.set_xlabel("Noise amplitude ($k_0/d_0$)")
-ax.set_ylabel("Approximate amplitude of oscillations in ACF")
+# %% [markdown]
+# # save stats
 
 # %%
 birthrate_vs_ydispl_df = pd.DataFrame({
