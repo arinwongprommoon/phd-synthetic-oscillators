@@ -18,9 +18,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import scipy as sp
-import seaborn as sns
 from postprocessor.core.processes.findpeaks import findpeaks
-from scipy.signal import periodogram
 
 from src.crosscorr import crosscorr
 from src.synthetic import fitzhugh_nagumo, gillespie_noise, sinusoid
@@ -109,13 +107,6 @@ def fitzhugh_nagumo_outofphase_array(
     return fitzhugh_nagumo_array
 
 
-def std_auc(array):
-    """
-    array: 2d numpy array
-    """
-    return np.trapz(array.std(axis=0))
-
-
 def model_func(t, K, C):
     return (1 - C) * np.exp(-K * t) + C
 
@@ -189,24 +180,6 @@ def fit_peak_trough(
     return upper_coeffs, lower_coeffs
 
 
-def guess_amplitude(timeseries):
-    """
-    Approximate ampltitude of an sinusoidal signal based on its Fourier
-    spectrum
-
-    Note: has to be a very good-quality sinusoid to work
-    """
-    freqs, power = periodogram(
-        timeseries,
-        fs=1,
-        nfft=len(timeseries),
-        return_onesided=True,
-        scaling="spectrum",
-    )
-    amp = np.sqrt(2 * max(power))
-    return amp
-
-
 # %% [markdown]
 # get stats
 
@@ -274,9 +247,6 @@ for noise_timescale, noise_amp in zip(noise_timescale_list, noise_amp_list):
         noise_amp=noise_amp,
     )
 
-    # auc
-    auc_list.append(std_auc(autocorr_result))
-
     # fit exponential
     initial_K = (gill_time_final / (gill_num_intervals - 1)) * (1 / noise_timescale)
     upper_coeffs, lower_coeffs = fit_peak_trough(autocorr_result, initial_K=initial_K)
@@ -285,37 +255,11 @@ for noise_timescale, noise_amp in zip(noise_timescale_list, noise_amp_list):
     lower_coeffs_list.append(lower_coeffs)
     est_coeffs_list.append(est_coeffs)
 
-    # residual sum of squares
-    timeaxis = autocorr_result.columns.to_numpy()
-    mean_acf_df = autocorr_result.mean().to_frame().T
-    mean_acf = mean_acf_df.to_numpy()[0]
-    est_func = model_func(timeaxis, est_coeffs[0], est_coeffs[1])
-    residuals = mean_acf - est_func
-    ss_res = np.sum(residuals**2)
-    ss_res_list.append(ss_res)
-
-    # approximate amplitude of oscillations in acf
-    amp = guess_amplitude(residuals)
-    amp_list.append(amp)
-
 
 # %% [markdown]
 # plots
 
 # %%
-# deathrate vs auc
-fig, ax = plt.subplots()
-ax.scatter(noise_timescale_list, auc_list)
-ax.set_xlabel("Noise timescale ($1/d_0$)")
-ax.set_ylabel(
-    "Area under curve:\n standard deviation of autocorrelation function\n against lags"
-)
-
-# deathrate vs params of exponential fits to acf
-lower_coeffs_array = np.array(lower_coeffs_list)
-upper_coeffs_array = np.array(upper_coeffs_list)
-est_coeffs_array = np.array(est_coeffs_list)
-
 fig_K, ax_K = plt.subplots()
 deathrate_list = 1 / np.array(noise_timescale_list)
 ax_K.scatter(deathrate_list, lower_coeffs_array[:, 0], label="Fit to troughs")
@@ -327,52 +271,7 @@ ax_K.set_ylabel(
 )
 ax_K.legend()
 
-fig_C, ax_C = plt.subplots()
-ax_C.scatter(noise_timescale_list, lower_coeffs_array[:, 1], label="Fit to troughs")
-ax_C.scatter(noise_timescale_list, est_coeffs_array[:, 1], label="Fit to mean")
-ax_C.scatter(noise_timescale_list, upper_coeffs_array[:, 1], label="Fit to peaks")
-ax_C.set_xlabel("Noise timescale ($1/d_0$)")
-ax_C.set_ylabel(
-    "estimated y-displacement ($C$)"
-)
-ax_C.legend()
-
-# deathrate vs residual sum of squares
-fig, ax = plt.subplots()
-ax.scatter(noise_timescale_list, ss_res_list)
-ax.set_xlabel("Noise timescale ($1/d_0$)")
-ax.set_ylabel("Residual sum of squares")
-
-# deathrate vs amplitude of oscillations in acf
-fig, ax = plt.subplots()
-ax.scatter(noise_timescale_list, amp_list)
-ax.set_xlabel("Noise timescale ($1/d_0$)")
-ax.set_ylabel("Approximate amplitude of oscillations in ACF")
-
 # %%
-# birthrate vs auc
-fig, ax = plt.subplots()
-ax.scatter(noise_amp_list, auc_list)
-ax.set_xlabel("Noise amplitude ($k_0/d_0$)")
-ax.set_ylabel(
-    "Area under curve:\n standard deviation of autocorrelation function\n against lags"
-)
-
-# birthrate vs params of exponential fits to acf
-lower_coeffs_array = np.array(lower_coeffs_list)
-upper_coeffs_array = np.array(upper_coeffs_list)
-est_coeffs_array = np.array(est_coeffs_list)
-
-fig_K, ax_K = plt.subplots()
-ax_K.scatter(noise_amp_list, lower_coeffs_array[:, 0], label="Fit to troughs")
-ax_K.scatter(noise_amp_list, est_coeffs_array[:, 0], label="Fit to mean")
-ax_K.scatter(noise_amp_list, upper_coeffs_array[:, 0], label="Fit to peaks")
-ax_K.set_xlabel("Noise amplitude ($k_0/d_0$)")
-ax_K.set_ylabel(
-    "estimated decay rate ($D$)"
-)
-ax_K.legend()
-
 fig_C, ax_C = plt.subplots()
 ax_C.scatter(noise_amp_list, lower_coeffs_array[:, 1], label="Fit to troughs")
 ax_C.scatter(noise_amp_list, est_coeffs_array[:, 1], label="Fit to mean")
@@ -382,18 +281,6 @@ ax_C.set_ylabel(
     "estimated y-displacement ($C$)"
 )
 ax_C.legend()
-
-# deathrate vs residual sum of squares
-fig, ax = plt.subplots()
-ax.scatter(noise_amp_list, ss_res_list)
-ax.set_xlabel("Noise amplitude ($k_0/d_0$)")
-ax.set_ylabel("Residual sum of squares")
-
-# deathrate vs amplitude of oscillations in acf
-fig, ax = plt.subplots()
-ax.scatter(noise_amp_list, amp_list)
-ax.set_xlabel("Noise amplitude ($k_0/d_0$)")
-ax.set_ylabel("Approximate amplitude of oscillations in ACF")
 
 # %%
 birthrate_vs_ydispl_df = pd.DataFrame({
