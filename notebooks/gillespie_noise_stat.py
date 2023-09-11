@@ -24,6 +24,37 @@ from src.crosscorr import crosscorr
 from src.synthetic import fitzhugh_nagumo, gillespie_noise, sinusoid
 from src.utils import multiarray_random_shift, tile_signals
 
+def generate_filepath_gillespie_noise(
+    dir="../data/interim/gillespienoise/",
+    num_timeseries,
+    noise_timescale,
+    noise_amp,
+):
+    """filename generator"""
+    deathrate = 1 / noise_timescale
+    birthrate = noise_amp / noise_timescale
+    num_timeseries_str = f"{num_timeseries:.0f}"
+    deathrate_str = f"{deathrate:.3f}".replace(".", "p")
+    birthrate_str = f"{birthrate:.3f}".replace(".", "p")
+    gill_noise_filepath = (
+        dir +
+        "gillespienoise_n"
+        + num_timeseries_str
+        + "_k"
+        + birthrate_str
+        + "_d"
+        + deathrate_str
+        + ".csv"
+    )
+    return gill_noise_filepath
+
+
+def load_gillespie_noise(gill_noise_filepath, num_timeseries):
+    # bodge. ideally, it should detect the number of time series from the filename
+    gill_noise_array = np.genfromtxt(gill_noise_filepath, delimiter=",")
+    gill_noise_array = gill_noise_array[:num_timeseries, :]
+    return gill_noise_array
+        
 
 def acfs_gillespie_noise(
     signal_function,
@@ -41,26 +72,16 @@ def acfs_gillespie_noise(
 
     # Array of Gillespie noise
     # filename generator
-    deathrate = 1 / noise_timescale
-    birthrate = noise_amp / noise_timescale
-    num_timeseries_str = f"{num_timeseries:.0f}"
-    deathrate_str = f"{deathrate:.3f}".replace(".", "p")
-    birthrate_str = f"{birthrate:.3f}".replace(".", "p")
-    gill_noise_filename = (
-        "../data/interim/gillespienoise/fitzhughnagumo/gillespienoise_n"
-        + num_timeseries_str
-        + "_k"
-        + birthrate_str
-        + "_d"
-        + deathrate_str
-        + ".csv"
+    gill_noise_filepath = generate_filepath_gillespie_noise(
+        num_timeseries=num_timeseries,
+        noise_timescale=noise_timescale,
+        noise_amp=noise_amp
     )
     # Load from file if it exists, or generate new
     try:
-        gill_noise_array = np.genfromtxt(gill_noise_filename, delimiter=",")
-        gill_noise_array = gill_noise_array[:num_timeseries, :]
+        load_gillespie_noise(gill_noise_filepath, num_timeseries=num_timeseries)
     except:
-        print(f"{gill_noise_filename} does not exist, running simulations...")
+        print(f"{gill_noise_filepath} does not exist, running simulations...")
         gill_noise_array = gillespie_noise(
             num_timeseries=num_timeseries,
             num_timepoints=len(timeaxis),
@@ -217,16 +238,15 @@ print(est_coeffs)
 
 # %%
 # this is VERY ugly, but it's at the end of the day and just want a plot out
+
 #noise_timescale_list = [20, 40, 60, 80, 100, 120, 140, 160, 180, 200]
 #noise_amp_list = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]
 noise_timescale_list = [20] * 11
 noise_amp_list = [20, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500]
-auc_list = []
+
 upper_coeffs_list = []
 lower_coeffs_list = []
 est_coeffs_list = []
-ss_res_list = []
-amp_list = []
 
 for noise_timescale, noise_amp in zip(noise_timescale_list, noise_amp_list):
     # generate signals & compute acf
