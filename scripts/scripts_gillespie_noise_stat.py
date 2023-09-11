@@ -9,39 +9,44 @@ from src.gillespienoise import acfs_gillespie_noise
 from src.array import sinusoid_outofphase_array, fitzhugh_nagumo_outofphase_array
 from src.expofit import fit_mean, fit_peak_trough
 
+model_options = {
+    # list of noise timescale values to go through
+    "noise_timescale_list": [20] * 11,
+    # list of noise amplitude values to go through.
+    # should be equal length as above
+    "noise_amp_list": [20, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500],
+    "gill_time_final": 7500,
+    "gill_num_intervals": 5000,
+    "num_timeseries": 200,
+    # function to use for signal,
+    # "sinusoid_outofphase_array" or "fitzhugh_nagumo_outofphase_array"
+    "signal_function": fitzhugh_nagumo_outofphase_array,
+}
 
-# vary stuff
 
 # define list of params to go through
 
-gill_time_final = 7500
-gill_num_intervals = 5000
-
-
 NoiseParams = namedtuple("NoiseParams", "noise_timescale noise_amp")
 
-noise_timescale_list = [20] * 11
-noise_amp_list = [20, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500]
-num_timeseries = 200
+noise_timescale_list = model_options["noise_timescale_list"]
+noise_amp_list = model_options["noise_amp_list"]
 
 noise_params_list = [
     NoiseParams(*el) for el in zip(noise_timescale_list, noise_amp_list)
 ]
 
-signal_function = fitzhugh_nagumo_outofphase_array
-# signal_function = sinusoid_outofphase_array
 
 # generate/load acfs
 
 acfs_dict = {}
 for noise_params in noise_params_list:
     autocorr_result = acfs_gillespie_noise(
-        signal_function=signal_function,
-        num_timeseries=num_timeseries,
+        signal_function=model_options["signal_function"],
+        num_timeseries=model_options["num_timeseries"],
         noise_timescale=noise_params.noise_timescale,
         noise_amp=noise_params.noise_amp,
-        gill_time_final=gill_time_final,
-        gill_num_intervals=gill_num_intervals,
+        gill_time_final=model_options["gill_time_final"],
+        gill_num_intervals=model_options["gill_num_intervals"],
     )
     acfs_dict[noise_params] = autocorr_result
 
@@ -55,7 +60,9 @@ for noise_params in noise_params_list:
     noise_timescale = noise_params.noise_timescale
     autocorr_result = acfs_dict[noise_params]
 
-    initial_K = (gill_time_final / (gill_num_intervals - 1)) * (1 / noise_timescale)
+    initial_K = (
+        model_options["gill_time_final"] / (model_options["gill_num_intervals"] - 1)
+    ) * (1 / noise_timescale)
     upper_coeffs, lower_coeffs = fit_peak_trough(autocorr_result, initial_K=initial_K)
     est_coeffs = fit_mean(autocorr_result, initial_K=initial_K)
     upper_coeffs_list.append(upper_coeffs)
