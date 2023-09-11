@@ -11,7 +11,7 @@ if module_path not in sys.path:
 # %matplotlib inline
 
 # %% [markdown]
-# setting stuff up
+# # setting stuff up
 
 # %% setting stuff up
 import matplotlib.pyplot as plt
@@ -25,10 +25,10 @@ from src.synthetic import fitzhugh_nagumo, gillespie_noise, sinusoid
 from src.utils import multiarray_random_shift, tile_signals
 
 def generate_filepath_gillespie_noise(
-    dir="../data/interim/gillespienoise/",
     num_timeseries,
     noise_timescale,
     noise_amp,
+    dir="../data/interim/gillespienoise/fitzhughnagumo/",
 ):
     """filename generator"""
     deathrate = 1 / noise_timescale
@@ -79,7 +79,7 @@ def acfs_gillespie_noise(
     )
     # Load from file if it exists, or generate new
     try:
-        load_gillespie_noise(gill_noise_filepath, num_timeseries=num_timeseries)
+        gill_noise_array = load_gillespie_noise(gill_noise_filepath, num_timeseries=num_timeseries)
     except:
         print(f"{gill_noise_filepath} does not exist, running simulations...")
         gill_noise_array = gillespie_noise(
