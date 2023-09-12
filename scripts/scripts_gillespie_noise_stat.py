@@ -13,18 +13,18 @@ from src.gillespienoise import acfs_gillespie_noise
 
 model_options = {
     # list of noise timescale values to go through
-    "noise_timescale_list": [20] * 11,
+    "noise_timescale_list": [20] * 20,
     # list of noise amplitude values to go through.
     # should be equal length as above
-    "noise_amp_list": [20, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500],
+    "noise_amp_list": np.linspace(1, 300, 20).tolist(),
     "gill_time_final": 7500,
     "gill_num_intervals": 5000,
     "num_timeseries": 200,
     # function to use for signal,
     # "sinusoid_outofphase_array" or "fitzhugh_nagumo_outofphase_array"
-    "signal_function": fitzhugh_nagumo_outofphase_array,
+    "signal_function": sinusoid_outofphase_array,
     # 0.03 for sinusoid, 0.0235 for FHN
-    "signal_freq": 0.0235,
+    "signal_freq": 0.03,
 }
 
 plot_choices = {
