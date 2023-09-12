@@ -17,9 +17,11 @@ k = 5 * l
 model_options = {
     # list of noise timescale values to go through
     "noise_timescale_list": [20] * 20,
+    # "noise_timescale_list": l.tolist(),
     # list of noise amplitude values to go through.
     # should be equal length as above
     "noise_amp_list": np.linspace(1, 300, 20).tolist(),
+    # "noise_amp_list": k.tolist(),
     "gill_time_final": 7500,
     "gill_num_intervals": 5000,
     "num_timeseries": 200,
