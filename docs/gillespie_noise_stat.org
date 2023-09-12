@@ -1,0 +1,22 @@
+* Notes on scripts_gillespie_noise_stat.py
+
+** Parameter values
+
+*** To investigate effect of birth rate
+
+#+begin_src python
+# For model_options dict
+noise_timescale_list = [20] * 20
+noise_amp_list = np.linspace(1, 300, 20).tolist()
+#+end_src
+
+*** To investigate effect of death rate
+
+#+begin_src python
+l = 1/np.linspace(0.005, 0.45, 20)
+k = 5 * l
+
+# For model_options dict
+noise_timescale_list = l.tolist()
+noise_amp_list = k.tolist()
+#+end_src
