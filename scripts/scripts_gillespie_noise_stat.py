@@ -143,9 +143,11 @@ if plot_choices["decay"]:
 
 if plot_choices["ydispl"]:
     fig_C, ax_C = plt.subplots()
+    ax_C.axhline(0, color="k", linewidth=1)
     ax_C.scatter(noise_amp_list, lower_coeffs_array[:, 1], label="Fit to troughs")
     ax_C.scatter(noise_amp_list, est_coeffs_array[:, 1], label="Fit to mean")
     ax_C.scatter(noise_amp_list, upper_coeffs_array[:, 1], label="Fit to peaks")
+    ax_C.set_ylim((-0.4, 0.4))
     ax_C.set_xlabel("Noise amplitude ($k_0/d_0$)")
     ax_C.set_ylabel("estimated y-displacement ($C$)")
     ax_C.legend()
