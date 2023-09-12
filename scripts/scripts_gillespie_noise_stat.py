@@ -16,18 +16,18 @@ k = 5 * l
 
 model_options = {
     # list of noise timescale values to go through
-    "noise_timescale_list": l.tolist(),
+    "noise_timescale_list": [20] * 20,
     # list of noise amplitude values to go through.
     # should be equal length as above
-    "noise_amp_list": k.tolist(),
+    "noise_amp_list": np.linspace(1, 300, 20).tolist(),
     "gill_time_final": 7500,
     "gill_num_intervals": 5000,
     "num_timeseries": 200,
     # function to use for signal,
     # "sinusoid_outofphase_array" or "fitzhugh_nagumo_outofphase_array"
-    "signal_function": sinusoid_outofphase_array,
+    "signal_function": fitzhugh_nagumo_outofphase_array,
     # 0.03 for sinusoid, 0.0235 for FHN
-    "signal_freq": 0.03,
+    "signal_freq": 0.0235,
 }
 
 plot_choices = {
