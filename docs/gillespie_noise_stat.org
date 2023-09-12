@@ -1,0 +1,39 @@
+* Notes on scripts_gillespie_noise_stat.py
+
+** Parameter values
+
+*** To investigate effect of birth rate
+
+#+begin_src python
+# For model_options dict
+noise_timescale_list = [20] * 20
+noise_amp_list = np.linspace(1, 300, 20).tolist()
+#+end_src
+
+*** To investigate effect of death rate
+
+#+begin_src python
+l = 1/np.linspace(0.005, 0.45, 20)
+k = 5 * l
+
+# For model_options dict
+noise_timescale_list = l.tolist()
+noise_amp_list = k.tolist()
+#+end_src
+
+* Notes on effects observed
+
+** Deathrate vs decay
+- Fits to peaks and to troughs start to become useless if d0 > 0.1, but fit to mean still becomes useful.
+- Fit to mean starts to be non-linear when d0 > 0.1.  I think it's because the ACF at that point has such a high decay rate that it's difficult to fit anything, especially if the lobes are large compared to the decay rate.  There is still a decent fit till d0 = 0.45 though.
+
+** Birthrate vs y-displacement
+- Fitting $y = A\mathrm{e}^{kt}$ (where $k < 0$, to simulate decay) to the $C$ values from fitting through peaks is probably not the best.  The y-displacement in this situation will always be positive because of the size of the lobes.
+- It is probably better to fit $y = B + A\mathrm{e}^{kt}$, and I can estimate $B$ by the value the $C$ approaches if $k_0/d_0$ is high.  So it's just a matter of subtracting away $B$ and then do what I did before.
+- This is fairly good for points 1 (array starting from 0) to 10.  Point 0 is an outlier.
+
+** Re-simulating
+- New parameters do not help re-simulating.  I still need to adjust a signal-to-noise ratio to get something that resembles the real time series.
+- This adjustment may make sense because:
+  - When I normalised the flavin time series, the noise gets incorporated in the information needed for this normalisation, and there is no way to extract that out.  Signal amplitude information is destroyed or at best, mutated a lot.
+  - Consider the low-glucose condition and compare it with the high-glucose condition.  Here, it is likely that the signal has low amplitude, but the noise parameters are similar.  With this in mind, a signal-to-noise ratio adjustment is needed.
