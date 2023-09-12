@@ -6,7 +6,7 @@ from src.synthetic import fitzhugh_nagumo, sinusoid
 from src.utils import multiarray_random_shift, tile_signals
 
 
-def sinusoid_outofphase_array(num_timeseries, timeaxis, amp, freq):
+def sinusoid_outofphase_array(num_timeseries, timeaxis, amp=1, freq=0.03):
     """Array of sinusoids, random phases"""
     sinusoid_outofphase_array = np.empty((num_timeseries, len(timeaxis)), dtype=float)
     for row_index in range(num_timeseries):

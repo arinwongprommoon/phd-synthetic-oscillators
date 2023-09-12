@@ -23,6 +23,7 @@ model_options = {
     # function to use for signal,
     # "sinusoid_outofphase_array" or "fitzhugh_nagumo_outofphase_array"
     "signal_function": fitzhugh_nagumo_outofphase_array,
+    # 0.03 for sinusoid, 0.0235 for FHN
     "signal_freq": 0.0235,
 }
 
