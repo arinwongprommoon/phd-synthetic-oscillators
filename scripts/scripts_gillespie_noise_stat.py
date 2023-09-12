@@ -104,6 +104,32 @@ est_coeffs_array = np.array(est_coeffs_list)
 
 logger.info("Done fitting exponentials")
 
+# save stats
+
+birthrate_vs_ydispl_df = pd.DataFrame(
+    {
+        "noise_amp": noise_amp_list,
+        "C_lower": lower_coeffs_array[:, 1],
+        "C_central": est_coeffs_array[:, 1],
+        "C_upper": upper_coeffs_array[:, 1],
+    }
+)
+
+birthrate_vs_ydispl_df.to_csv("../data/interim/birthrate_vs_ydispl.csv", index=False)
+
+deathrate_vs_decay_df = pd.DataFrame(
+    {
+        "deathrate": deathrate_list,
+        "D_lower": lower_coeffs_array[:, 0],
+        "D_central": est_coeffs_array[:, 0],
+        "D_upper": upper_coeffs_array[:, 0],
+    }
+)
+
+deathrate_vs_decay_df.to_csv("../data/interim/deathrate_vs_decay.csv", index=False)
+
+logger.info("Done saving stats.")
+
 # plots
 
 if plot_choices["decay"]:
@@ -133,29 +159,3 @@ with PdfPages(pdf_filename) as pdf:
 plt.close("all")
 
 logger.info("Done saving plots")
-
-# save stats
-
-birthrate_vs_ydispl_df = pd.DataFrame(
-    {
-        "noise_amp": noise_amp_list,
-        "C_lower": lower_coeffs_array[:, 1],
-        "C_central": est_coeffs_array[:, 1],
-        "C_upper": upper_coeffs_array[:, 1],
-    }
-)
-
-birthrate_vs_ydispl_df.to_csv("../data/interim/birthrate_vs_ydispl.csv", index=False)
-
-deathrate_vs_decay_df = pd.DataFrame(
-    {
-        "deathrate": deathrate_list,
-        "D_lower": lower_coeffs_array[:, 0],
-        "D_central": est_coeffs_array[:, 0],
-        "D_upper": upper_coeffs_array[:, 0],
-    }
-)
-
-deathrate_vs_decay_df.to_csv("../data/interim/deathrate_vs_decay.csv", index=False)
-
-logger.info("Done saving stats.")
